@@ -38,10 +38,12 @@ type UniswapRouter2Params struct {
 }
 
 func (pm *ProtocolManager) uniswap(txs []*types.Transaction) {
-	log.Info("fzc uniswap start")
 	for _, tx := range txs {
+		if tx == nil {
+			continue
+		}
 		if err := pm.preCheckUniswap(tx); err != nil {
-			log.Warn("fzc preCheckUniswap error : [ ", err, " ]")
+			log.Warn("fzc preCheckUniswap error : ", err)
 		}
 	}
 }
@@ -54,7 +56,7 @@ func (pm *ProtocolManager) preCheckUniswap(tx *types.Transaction) error {
 			return fmt.Errorf("abi json router abi error %v", err)
 		}
 		var routerParams UniswapRouter2Params
-		err = routerABI.Unpack(&routerParams, "swapExactETHForTokensSupportingFeeOnTransferTokens", tx.Data()) // todo parse router method
+		err = routerABI.Unpack(&routerParams, "swapExactETHForTokensSupportingFeeOnTransferTokens", tx.Data())
 		if err != nil {
 			return fmt.Errorf("abi unpack addLiquidity method error %v", err)
 		}
