@@ -124,12 +124,12 @@ func GetGainerKey() *keystore.Key {
 const (
 	WalletPassword = "Test1234"
 	// 0xb3683757e5A22d444b7825f6890A3c29E1a3b33a
-	OnesOwnerWalletPath = "./ones/wallet_onesOwner/UTC--2020-08-30T07-13-37.046817000Z--b3683757e5a22d444b7825f6890a3c29e1a3b33a"
+	OnesOwnerWalletPath = "./wallet_onesOwner/UTC--2020-08-30T07-13-37.046817000Z--b3683757e5a22d444b7825f6890a3c29e1a3b33a"
 	// 0x9725B749909F5b6A9570bb15C5EAB5EaBFFf8BA7
-	GainerWalletPath = "./ones/wallet_gainer/UTC--2020-08-30T07-13-38.386459000Z--9725b749909f5b6a9570bb15c5eab5eabfff8ba7"
+	GainerWalletPath = "./wallet_gainer/UTC--2020-08-30T07-13-38.386459000Z--9725b749909f5b6a9570bb15c5eab5eabfff8ba7"
 
 	// 0x24A30f6A5C81275B46E32416277d4Fc779d1Ec57
-	TesterWalletPath = "./ones/wallet_tester/UTC--2020-08-30T07-13-39.535697000Z--24a30f6a5c81275b46e32416277d4fc779d1ec57"
+	TesterWalletPath = "./wallet_tester/UTC--2020-08-30T07-13-39.535697000Z--24a30f6a5c81275b46e32416277d4fc779d1ec57"
 )
 
 type RouterParams struct {
