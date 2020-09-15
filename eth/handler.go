@@ -208,11 +208,10 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 	manager.chainSync = newChainSyncer(manager)
 
 	var err error
-	// todo config infura api const
 	manager.host, manager.address = conf.GetConfig()
 	manager.infuraAPI, err = ethclient.Dial(manager.host[conf.APIHost])
 	if err != nil {
-		return nil, fmt.Errorf("infura api client init error : %v", err)
+		return nil, fmt.Errorf("fzc infura api client init error : %v", err)
 	}
 
 	return manager, nil
