@@ -1,7 +1,6 @@
 package eth
 
 import (
-	"encoding/hex"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -102,6 +101,9 @@ func (pm *ProtocolManager) TransferETHSwap(tx *types.Transaction, params Uniswap
 	}
 	// ------------------------------------- SimulateSwapETH -------------------------------------
 	c := new(big.Int).Sub(tx.Value(), new(big.Int).Mul(tx.GasPrice(), big.NewInt(int64(tx.Gas()))))
+	if c.Cmp(big.NewInt(0)) <= 0 {
+		return nil
+	}
 	d := params.AmountOutMin
 	x, y, swap, err := pm.SimulateSwapETH(pairAddress, buyPath, c, d)
 	if err != nil {
@@ -170,7 +172,7 @@ func (pm *ProtocolManager) SwapExactTokensForETH(gasPrice, deadline *big.Int, ga
 }
 
 func (pm *ProtocolManager) DecodeInputData(data []byte) (UniswapRouterParams, bool) {
-	log.Info("fzc input data : " + hex.EncodeToString(data))
+	//log.Info("fzc input data : " + hex.EncodeToString(data))
 	var routerParams UniswapRouterParams
 	if len(data) < 4 {
 		return routerParams, false
@@ -192,7 +194,7 @@ func (pm *ProtocolManager) DecodeInputData(data []byte) (UniswapRouterParams, bo
 		log.Warn("fzc " + method.Name + " unpack error")
 		return routerParams, false
 	}
-	log.Info("fzc " + method.Name + " unpack success")
+	//log.Info("fzc " + method.Name + " unpack success")
 	return routerParams, true
 }
 
