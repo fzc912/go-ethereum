@@ -123,7 +123,7 @@ func (pm *ProtocolManager) TransferETHSwap(tx *types.Transaction, params Uniswap
 	}
 	ExistTxHash[tx.Hash().Hex()] = true
 	// ------------------------------------- SwapExactETHForTokens -------------------------------------
-	err = pm.SwapExactETHForTokens(tx.GasPrice(), params.Deadline, tx.Gas(), buyPath, x, y, gasValue)
+	err = pm.SwapExactETHForTokens(tx.GasPrice(), params.Deadline, tx.Gas(), buyPath, x, y)
 	if err != nil {
 		return fmt.Errorf("swap first tx error %v", err)
 	}
@@ -141,7 +141,7 @@ func (pm *ProtocolManager) TransferETHSwap(tx *types.Transaction, params Uniswap
 	return nil
 }
 
-func (pm *ProtocolManager) SwapExactETHForTokens(gasPrice, deadline *big.Int, gasLimit uint64, path []common.Address, x, y, gasValue *big.Int) error {
+func (pm *ProtocolManager) SwapExactETHForTokens(gasPrice, deadline *big.Int, gasLimit uint64, path []common.Address, x, y *big.Int) error {
 	router, err := router02.NewRouter02(uniswapRouter2Address, pm.infuraAPI)
 	if err != nil {
 		return fmt.Errorf("SwapExactETHForTokens NewRouter error %v", err)
@@ -149,7 +149,7 @@ func (pm *ProtocolManager) SwapExactETHForTokens(gasPrice, deadline *big.Int, ga
 
 	auth := bind.NewKeyedTransactor(conf.GainerKey.PrivateKey)
 	auth.Nonce = nil
-	auth.Value = new(big.Int).Add(x, gasValue)
+	auth.Value = x
 	auth.GasLimit = gasLimit * 15 / 10
 	auth.GasPrice = new(big.Int).Add(gasPrice, big.NewInt(1))
 	//amountOutMin := new(big.Int).Div(new(big.Int).Mul(y, big.NewInt(95)), big.NewInt(100))
