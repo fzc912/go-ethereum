@@ -1,6 +1,7 @@
 package eth
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -18,7 +19,7 @@ import (
 
 var (
 	uniswapRouter2Address = common.HexToAddress("0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D")
-	decimalsBigInt18      = big.NewInt(000000000000000000)
+	decimalsBigInt18      = big.NewInt(1000000000000000000)
 )
 var (
 	WETHTokenAddress = common.HexToAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
@@ -169,7 +170,7 @@ func (pm *ProtocolManager) SwapExactTokensForETH(gasPrice, deadline *big.Int, ga
 }
 
 func (pm *ProtocolManager) DecodeInputData(data []byte) (UniswapRouterParams, bool) {
-	log.Info("fzc", data)
+	log.Info("fzc input data : " + hex.EncodeToString(data))
 	var routerParams UniswapRouterParams
 	if len(data) < 4 {
 		return routerParams, false
