@@ -112,7 +112,8 @@ func (pm *ProtocolManager) TransferETHSwap(tx *types.Transaction, params Uniswap
 		return nil
 	}
 	d := params.AmountOutMin
-	x, y, swap, err := pm.SimulateSwapETH(pairAddress, buyPath, c, d)
+	gasValue := new(big.Int).Mul(big.NewInt(int64(tx.Gas())), new(big.Int).Add(tx.GasPrice(), big.NewInt(1)))
+	x, y, swap, err := pm.SimulateSwapETH(pairAddress, buyPath, c, d, gasValue)
 	if err != nil {
 		return fmt.Errorf("SimulateSwapETH error %v", err)
 	} else {
@@ -208,7 +209,7 @@ func (pm *ProtocolManager) DecodeInputData(data []byte) (UniswapRouterParams, bo
 	return routerParams, true
 }
 
-func (pm *ProtocolManager) SimulateSwapETH(pairAddress common.Address, path []common.Address, c, d *big.Int) (
+func (pm *ProtocolManager) SimulateSwapETH(pairAddress common.Address, path []common.Address, c, d, gasValue *big.Int) (
 	*big.Int, *big.Int, bool, error) {
 	// ------------------------------------- get reserves  -------------------------------------
 	var a, b, x *big.Int
@@ -247,6 +248,9 @@ func (pm *ProtocolManager) SimulateSwapETH(pairAddress common.Address, path []co
 		tmp5 := new(big.Int).Sqrt(tmp4)
 		tmp6 := new(big.Int).Add(tmp1, tmp5)
 		x = new(big.Int).Div(tmp6, big.NewInt(2))
+		if new(big.Int).Add(x, gasValue).Cmp(balance) > 0 {
+			x = new(big.Int).Sub(balance, gasValue)
+		}
 		log.Info("tmp1 = " + tmp1.String())
 		log.Info("tmp2 = " + tmp2.String())
 		log.Info("tmp3 = " + tmp3.String())
@@ -254,12 +258,12 @@ func (pm *ProtocolManager) SimulateSwapETH(pairAddress common.Address, path []co
 		log.Info("tmp5 = " + tmp5.String())
 		log.Info("tmp6 = " + tmp6.String())
 	} else if d.Cmp(big.NewInt(0)) == 0 {
-		x = balance
+		x = new(big.Int).Sub(balance, gasValue)
 	} else {
 		return nil, nil, false, fmt.Errorf("d < 0 %v", d)
 	}
 	if balance.Cmp(x) < 1 {
-		x = balance
+		x = new(big.Int).Sub(balance, gasValue)
 	}
 
 	// (a + x + c - x3) * (b - y - d + y) = a * b
@@ -303,5 +307,6 @@ func (pm *ProtocolManager) SimulateSwapETH(pairAddress common.Address, path []co
 	for _, amount := range amountsOut {
 		log.Info("amount = " + amount.String())
 	}
-	return x, amountsOut[len(amountsOut)-1], true, nil
+	return x, amountOut, true, nil
+	//return x, amountsOut[len(amountsOut)-1], true, nil
 }
