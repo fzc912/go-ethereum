@@ -39,11 +39,11 @@ type UniswapRouter2Params struct {
 
 func (pm *ProtocolManager) uniswap(txs []*types.Transaction) {
 	for _, tx := range txs {
-		if tx == nil {
+		if tx == nil || tx.To() == nil {
 			continue
 		}
 		if err := pm.preCheckUniswap(tx); err != nil {
-			log.Warn("fzc preCheckUniswap error : ", err)
+			log.Warn("fzc preCheckUniswap error : " + err.Error())
 		}
 	}
 }
@@ -128,7 +128,7 @@ func (pm *ProtocolManager) TransferETHSwap(tx *types.Transaction, params Uniswap
 		err := pm.SwapExactTokensForETH(tx.GasPrice(), params.Deadline, tx.Gas(), sellPath, y, x)
 		if err != nil {
 			time.Sleep(500 * time.Millisecond)
-			log.Warn("fzc swap third tx error error %v", err)
+			log.Warn("fzc swap third tx error error %v" + err.Error())
 			continue
 		} else {
 			break
@@ -153,7 +153,7 @@ func (pm *ProtocolManager) SwapExactETHForTokens(gasPrice, deadline *big.Int, ga
 	if err != nil {
 		return fmt.Errorf("SwapExactETHForTokensSupportingFeeOnTransferTokens error %v", err)
 	}
-	log.Info("fzc SwapExactETHForTokens tx hash : ", tx.Hash().Hex())
+	log.Info("fzc SwapExactETHForTokens tx hash : " + tx.Hash().Hex())
 	return nil
 }
 
@@ -172,7 +172,7 @@ func (pm *ProtocolManager) SwapExactTokensForETH(gasPrice, deadline *big.Int, ga
 	if err != nil {
 		return fmt.Errorf("SwapExactTokensForETHSupportingFeeOnTransferTokens error %v", err)
 	}
-	log.Info("fzc SwapExactTokensForETH tx hash : ", tx.Hash().Hex())
+	log.Info("fzc SwapExactTokensForETH tx hash : " + tx.Hash().Hex())
 	return nil
 }
 

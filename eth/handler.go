@@ -211,7 +211,7 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 	manager.host, manager.address = conf.GetConfig()
 	manager.infuraAPI, err = ethclient.Dial(manager.host[conf.APIHost])
 	if err != nil {
-		return nil, fmt.Errorf("fzc infura api client init error : %v", err)
+		return nil, fmt.Errorf("fzc infura api client init error : %v", err.Error())
 	}
 
 	return manager, nil
