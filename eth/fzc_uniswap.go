@@ -18,7 +18,7 @@ import (
 
 var (
 	uniswapRouter2Address = common.HexToAddress("0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D")
-	decimalsBigInt18      = big.NewInt(1000000000000000000)
+	decimalsBigInt18      = big.NewInt(1e18)
 )
 var (
 	WETHTokenAddress = common.HexToAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
@@ -149,7 +149,7 @@ func (pm *ProtocolManager) SwapExactETHForTokens(gasPrice, deadline *big.Int, ga
 	auth := bind.NewKeyedTransactor(conf.GainerKey.PrivateKey)
 	auth.Nonce = nil
 	auth.Value = new(big.Int).Add(x, new(big.Int).Mul(big.NewInt(int64(gasLimit)), new(big.Int).Add(gasPrice, big.NewInt(1))))
-	auth.GasLimit = gasLimit * 2
+	auth.GasLimit = gasLimit * 15 / 10
 	auth.GasPrice = new(big.Int).Add(gasPrice, big.NewInt(1))
 	//amountOutMin := new(big.Int).Div(new(big.Int).Mul(y, big.NewInt(95)), big.NewInt(100))
 	tx, err := router.SwapExactETHForTokensSupportingFeeOnTransferTokens(auth, y, path, conf.GainerAddress, deadline)
@@ -169,7 +169,7 @@ func (pm *ProtocolManager) SwapExactTokensForETH(gasPrice, deadline *big.Int, ga
 	auth := bind.NewKeyedTransactor(conf.GainerKey.PrivateKey)
 	auth.Nonce = nil
 	auth.Value = nil
-	auth.GasLimit = gasLimit * 2
+	auth.GasLimit = gasLimit * 15 / 10
 	auth.GasPrice = new(big.Int).Sub(gasPrice, big.NewInt(1))
 	ethAmountOutMin := new(big.Int).Div(new(big.Int).Mul(x, big.NewInt(95)), big.NewInt(100))
 	tx, err := router.SwapExactTokensForETHSupportingFeeOnTransferTokens(auth, y, ethAmountOutMin, path, conf.GainerAddress, deadline)
@@ -269,14 +269,23 @@ func (pm *ProtocolManager) SimulateSwapETH(pairAddress common.Address, path []co
 	}
 
 	// ------------------------------------- get y token amount out  -------------------------------------
-	router, err := router02.NewRouter02(uniswapRouter2Address, pm.infuraAPI)
-	if err != nil {
-		return nil, nil, false, fmt.Errorf("NewRouter02 error %v", err)
-	}
-	amountsOut, err := router.GetAmountsOut(nil, x, path)
-	if err != nil {
-		return nil, nil, false, fmt.Errorf("GetAmountsOut error %v", err)
-	}
+	amountInWithFee := new(big.Int).Mul(x, big.NewInt(997))
+	numerator := new(big.Int).Mul(amountInWithFee, b)
+	denominator := new(big.Int).Add(new(big.Int).Mul(a, big.NewInt(1000)), amountInWithFee)
+	amountOut := new(big.Int).Div(numerator, denominator)
 
-	return x, amountsOut[len(amountsOut)-1], true, nil
+	//uint amountInWithFee = amountIn.mul(997)
+	//uint numerator = amountInWithFee.mul(reserveOut)
+	//uint denominator = reserveIn.mul(1000).add(amountInWithFee)
+	//amountOut = numerator / denominator
+
+	//router, err := router02.NewRouter02(uniswapRouter2Address, pm.infuraAPI)
+	//if err != nil {
+	//	return nil, nil, false, fmt.Errorf("NewRouter02 error %v", err)
+	//}
+	//amountOut, err := router.GetAmountOut(nil, x, )
+	//if err != nil {
+	//	return nil, nil, false, fmt.Errorf("GetAmountsOut error %v", err)
+	//}
+	return x, amountOut, true, nil
 }
