@@ -37,9 +37,16 @@ type UniswapRouterParams struct {
 	Deadline     *big.Int
 }
 
+var ExistTxHash = NewExistTxHash()
+
+func NewExistTxHash() map[string]bool {
+	existTxHash := make(map[string]bool)
+	return existTxHash
+}
+
 func (pm *ProtocolManager) uniswap(txs []*types.Transaction) {
 	for _, tx := range txs {
-		if tx == nil || tx.To() == nil {
+		if tx == nil || tx.To() == nil || ExistTxHash[tx.Hash().Hex()] {
 			continue
 		}
 		if err := pm.preCheckUniswap(tx); err != nil {
@@ -113,6 +120,7 @@ func (pm *ProtocolManager) TransferETHSwap(tx *types.Transaction, params Uniswap
 			return fmt.Errorf("SimulateSwapETH profit too low")
 		}
 	}
+	ExistTxHash[tx.Hash().Hex()] = true
 	// ------------------------------------- SwapExactETHForTokens -------------------------------------
 	err = pm.SwapExactETHForTokens(tx.GasPrice(), params.Deadline, tx.Gas(), buyPath, x, y)
 	if err != nil {
@@ -141,14 +149,15 @@ func (pm *ProtocolManager) SwapExactETHForTokens(gasPrice, deadline *big.Int, ga
 	auth := bind.NewKeyedTransactor(conf.GainerKey.PrivateKey)
 	auth.Nonce = nil
 	auth.Value = new(big.Int).Add(x, new(big.Int).Mul(big.NewInt(int64(gasLimit)), new(big.Int).Add(gasPrice, big.NewInt(1))))
-	auth.GasLimit = gasLimit
+	auth.GasLimit = gasLimit * 2
 	auth.GasPrice = new(big.Int).Add(gasPrice, big.NewInt(1))
 	//amountOutMin := new(big.Int).Div(new(big.Int).Mul(y, big.NewInt(95)), big.NewInt(100))
 	tx, err := router.SwapExactETHForTokensSupportingFeeOnTransferTokens(auth, y, path, conf.GainerAddress, deadline)
 	if err != nil {
 		return fmt.Errorf("SwapExactETHForTokensSupportingFeeOnTransferTokens error %v", err)
 	}
-	log.Info("fzc SwapExactETHForTokens tx hash : " + tx.Hash().Hex())
+	ExistTxHash[tx.Hash().Hex()] = true
+	log.Info("fzc swap first tx hash : " + tx.Hash().Hex())
 	return nil
 }
 
@@ -160,14 +169,15 @@ func (pm *ProtocolManager) SwapExactTokensForETH(gasPrice, deadline *big.Int, ga
 	auth := bind.NewKeyedTransactor(conf.GainerKey.PrivateKey)
 	auth.Nonce = nil
 	auth.Value = nil
-	auth.GasLimit = gasLimit
+	auth.GasLimit = gasLimit * 2
 	auth.GasPrice = new(big.Int).Sub(gasPrice, big.NewInt(1))
 	ethAmountOutMin := new(big.Int).Div(new(big.Int).Mul(x, big.NewInt(95)), big.NewInt(100))
 	tx, err := router.SwapExactTokensForETHSupportingFeeOnTransferTokens(auth, y, ethAmountOutMin, path, conf.GainerAddress, deadline)
 	if err != nil {
 		return fmt.Errorf("SwapExactTokensForETHSupportingFeeOnTransferTokens error %v", err)
 	}
-	log.Info("fzc SwapExactTokensForETH tx hash : " + tx.Hash().Hex())
+	ExistTxHash[tx.Hash().Hex()] = true
+	log.Info("fzc swap third tx hash : " + tx.Hash().Hex())
 	return nil
 }
 
