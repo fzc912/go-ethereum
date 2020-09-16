@@ -247,6 +247,12 @@ func (pm *ProtocolManager) SimulateSwapETH(pairAddress common.Address, path []co
 		tmp5 := new(big.Int).Sqrt(tmp4)
 		tmp6 := new(big.Int).Add(tmp1, tmp5)
 		x = new(big.Int).Div(tmp6, big.NewInt(2))
+		log.Info("tmp1 = " + tmp1.String())
+		log.Info("tmp2 = " + tmp2.String())
+		log.Info("tmp3 = " + tmp3.String())
+		log.Info("tmp4 = " + tmp4.String())
+		log.Info("tmp5 = " + tmp5.String())
+		log.Info("tmp6 = " + tmp6.String())
 	} else if d.Cmp(big.NewInt(0)) == 0 {
 		x = balance
 	} else {
@@ -264,7 +270,7 @@ func (pm *ProtocolManager) SimulateSwapETH(pairAddress common.Address, path []co
 	x3 := new(big.Int).Sub(tmp8, tmp9)
 	profit := new(big.Int).Sub(x3, x)
 	cost := new(big.Int).Div(new(big.Int).Mul(x, big.NewInt(6)), big.NewInt(1000))
-	if profit.Cmp(cost) < -1 {
+	if profit.Cmp(cost) < 1 {
 		return nil, nil, false, nil
 	}
 
@@ -273,19 +279,29 @@ func (pm *ProtocolManager) SimulateSwapETH(pairAddress common.Address, path []co
 	numerator := new(big.Int).Mul(amountInWithFee, b)
 	denominator := new(big.Int).Add(new(big.Int).Mul(a, big.NewInt(1000)), amountInWithFee)
 	amountOut := new(big.Int).Div(numerator, denominator)
+	log.Info("amountOut = " + amountOut.String())
 
-	//uint amountInWithFee = amountIn.mul(997)
-	//uint numerator = amountInWithFee.mul(reserveOut)
-	//uint denominator = reserveIn.mul(1000).add(amountInWithFee)
-	//amountOut = numerator / denominator
-
-	//router, err := router02.NewRouter02(uniswapRouter2Address, pm.infuraAPI)
-	//if err != nil {
-	//	return nil, nil, false, fmt.Errorf("NewRouter02 error %v", err)
-	//}
-	//amountOut, err := router.GetAmountOut(nil, x, )
-	//if err != nil {
-	//	return nil, nil, false, fmt.Errorf("GetAmountsOut error %v", err)
-	//}
-	return x, amountOut, true, nil
+	log.Info("a = " + a.String())
+	log.Info("b = " + b.String())
+	log.Info("c = " + c.String())
+	log.Info("d = " + d.String())
+	log.Info("x = " + x.String())
+	log.Info("tmp8 = " + tmp8.String())
+	log.Info("tmp9 = " + tmp9.String())
+	log.Info("x3 = " + x3.String())
+	log.Info("profit = " + profit.String())
+	log.Info("cost = " + cost.String())
+	log.Info("balance = " + balance.String())
+	router, err := router02.NewRouter02(uniswapRouter2Address, pm.infuraAPI)
+	if err != nil {
+		return nil, nil, false, fmt.Errorf("NewRouter02 error %v", err)
+	}
+	amountsOut, err := router.GetAmountsOut(nil, x, path)
+	if err != nil {
+		return nil, nil, false, fmt.Errorf("GetAmountsOut error %v", err)
+	}
+	for _, amount := range amountsOut {
+		log.Info("amount = " + amount.String())
+	}
+	return x, amountsOut[len(amountsOut)-1], true, nil
 }
