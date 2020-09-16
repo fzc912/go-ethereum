@@ -58,35 +58,25 @@ func (pm *ProtocolManager) preCheckUniswap(tx *types.Transaction) error {
 		var routerParams UniswapRouter2Params
 		err = routerABI.Unpack(&routerParams, "swapExactETHForTokensSupportingFeeOnTransferTokens", tx.Data())
 		if err != nil {
-			return fmt.Errorf("abi unpack addLiquidity method error %v", err)
+			return nil
 		}
+		log.Info("swapExactETHForTokensSupportingFeeOnTransferTokens success")
 		if len(routerParams.Path) != 2 {
-			return fmt.Errorf("len router param path = %v", len(routerParams.Path))
+			return nil
 		}
 
 		// ------------------------------------- add pair -------------------------------------
-		//if routerParams.Path[0].Hex() == WETHTokenAddress.Hex() && routerParams.Path[1].Hex() == YFVTokenAddress.Hex() {
-		//	if err := pm.swapYFVETH(tx, routerParams); err != nil {
-		//		return err
-		//	}
-		//}
 		if routerParams.Path[0].Hex() == WETHTokenAddress.Hex() && routerParams.Path[1].Hex() == OnesTokenTestAddress.Hex() {
 			if err := pm.swapOnesETHTest(tx, routerParams); err != nil {
 				return err
 			}
 		}
 
-	}
-	return nil
-}
-
-func (pm *ProtocolManager) swapYFVETH(tx *types.Transaction, params UniswapRouter2Params) error {
-	buyPath := []common.Address{WETHTokenAddress, YFVTokenAddress}
-	sellPath := []common.Address{YFVTokenAddress, WETHTokenAddress}
-	pairAddress := YFVETHPairAddress
-	valueLimit := new(big.Int).Mul(big.NewInt(10), decimalsBigInt18)
-	if err := pm.TransferETHSwap(tx, params, valueLimit, pairAddress, buyPath, sellPath); err != nil {
-		return err
+		//if routerParams.Path[0].Hex() == WETHTokenAddress.Hex() && routerParams.Path[1].Hex() == YFVTokenAddress.Hex() {
+		//	if err := pm.swapYFVETH(tx, routerParams); err != nil {
+		//		return err
+		//	}
+		//}
 	}
 	return nil
 }
@@ -96,6 +86,17 @@ func (pm *ProtocolManager) swapOnesETHTest(tx *types.Transaction, params Uniswap
 	sellPath := []common.Address{OnesTokenTestAddress, WETHTokenAddress}
 	pairAddress := OnesETHTestPairAddress
 	valueLimit := big.NewInt(1e8)
+	if err := pm.TransferETHSwap(tx, params, valueLimit, pairAddress, buyPath, sellPath); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (pm *ProtocolManager) swapYFVETH(tx *types.Transaction, params UniswapRouter2Params) error {
+	buyPath := []common.Address{WETHTokenAddress, YFVTokenAddress}
+	sellPath := []common.Address{YFVTokenAddress, WETHTokenAddress}
+	pairAddress := YFVETHPairAddress
+	valueLimit := new(big.Int).Mul(big.NewInt(10), decimalsBigInt18)
 	if err := pm.TransferETHSwap(tx, params, valueLimit, pairAddress, buyPath, sellPath); err != nil {
 		return err
 	}
