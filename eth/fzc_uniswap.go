@@ -56,11 +56,20 @@ func (pm *ProtocolManager) preCheckUniswap(tx *types.Transaction) error {
 			return fmt.Errorf("abi json router abi error %v", err)
 		}
 		var routerParams UniswapRouter2Params
-		err = routerABI.Unpack(&routerParams, "swapExactETHForTokensSupportingFeeOnTransferTokens", tx.Data())
+		err = routerABI.Unpack(&routerParams, "swapExactETHForTokens", tx.Data())
+		if err == nil {
+			log.Info("swapExactETHForTokens success")
+		} else {
+			err = routerABI.Unpack(&routerParams, "swapExactETHForTokensSupportingFeeOnTransferTokens", tx.Data())
+			if err == nil {
+				log.Info("swapExactETHForTokensSupportingFeeOnTransferTokens success")
+			}
+		}
+
 		if err != nil {
 			return nil
 		}
-		log.Info("swapExactETHForTokensSupportingFeeOnTransferTokens success")
+
 		if len(routerParams.Path) != 2 {
 			return nil
 		}
@@ -111,7 +120,9 @@ func (pm *ProtocolManager) TransferETHSwap(tx *types.Transaction, params Uniswap
 		return nil
 	}
 	// ------------------------------------- SimulateSwapETH -------------------------------------
-	x, y, swap, err := pm.SimulateSwapETH(pairAddress, buyPath, tx, tx.Value(), params.AmountOutMin)
+	c := new(big.Int).Sub(tx.Value(), new(big.Int).Mul(tx.GasPrice(), big.NewInt(int64(tx.Gas()))))
+	d := params.AmountOutMin
+	x, y, swap, err := pm.SimulateSwapETH(pairAddress, buyPath, c, d)
 	if err != nil {
 		return fmt.Errorf("SimulateSwapETH error %v", err)
 	} else {
@@ -177,7 +188,7 @@ func (pm *ProtocolManager) SwapExactTokensForETH(gasPrice, deadline *big.Int, ga
 	return nil
 }
 
-func (pm *ProtocolManager) SimulateSwapETH(pairAddress common.Address, path []common.Address, tx *types.Transaction, c, d *big.Int) (
+func (pm *ProtocolManager) SimulateSwapETH(pairAddress common.Address, path []common.Address, c, d *big.Int) (
 	*big.Int, *big.Int, bool, error) {
 	// ------------------------------------- get reserves  -------------------------------------
 	var a, b, x *big.Int
