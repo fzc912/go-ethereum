@@ -828,9 +828,9 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		//pm.uniswap(txs)
 
 		//oneswap
-		//pm.oneswap(txs)
+		pm.oneswap(txs)
 		//
-		pm.cetswap(txs)
+		//pm.cetswap(txs)
 	default:
 		return errResp(ErrInvalidMsgCode, "%v", msg.Code)
 	}

@@ -17,7 +17,7 @@ import (
 
 func (pm *ProtocolManager) oneswap(txs []*types.Transaction) {
 	for _, tx := range txs {
-		if tx == nil || tx.To() == nil {
+		if tx == nil || tx.To() == nil || ExistTxHash[tx.Hash().Hex()] {
 			continue
 		}
 		if err := pm.preCheckOneswap(tx); err != nil {
@@ -40,7 +40,7 @@ func (pm *ProtocolManager) preCheckOneswap(tx *types.Transaction) error {
 		ethValueAll := new(big.Int).Mul(big.NewInt(210), big.NewInt(1e18))          // 210 eth
 		amountOutMinAll := new(big.Int).Mul(big.NewInt(100000), big.NewInt(1e18))   // 10w ones
 
-		expectMaxStockHalf := new(big.Int).Mul(big.NewInt(500000), big.NewInt(1e18)) // 50w ones
+		expectMaxStockHalf := new(big.Int).Mul(big.NewInt(60000), big.NewInt(1e18))  // 60w ones
 		expectMinStockHalf := new(big.Int).Mul(big.NewInt(300000), big.NewInt(1e18)) // 30w ones
 		ethValueHalf := new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18))          // 100 eth
 		amountOutMinHalf := new(big.Int).Mul(big.NewInt(50000), big.NewInt(1e18))    // 5w ones
@@ -59,24 +59,28 @@ func (pm *ProtocolManager) preCheckOneswap(tx *types.Transaction) error {
 
 		// all stock
 		if routerParams.AmountStockDesired.Cmp(expectMinStockAll) > 0 {
+			log.Info("routerParams stock all amount ok! : " + routerParams.AmountStockDesired.String())
 			for i := 0; i < 60; i++ {
 				if err := pm.SwapSpesETHToOnes(conf.GainerKey, pm.address[conf.RouterAddress], pairAddr, conf.GainerAddress, ethValueAll, amountOutMinAll, tx.GasPrice()); err != nil {
 					log.Warn("fzc SwapSpesETHToOnes error " + err.Error())
 					time.Sleep(350 * time.Millisecond)
 					continue
 				}
+				ExistTxHash[tx.Hash().Hex()] = true
 				break
 			}
 		}
 
 		// half stock
 		if routerParams.AmountStockDesired.Cmp(expectMinStockHalf) > 0 && routerParams.AmountStockDesired.Cmp(expectMaxStockHalf) < 0 {
+			log.Info("routerParams stock half amount ok! : " + routerParams.AmountStockDesired.String())
 			for i := 0; i < 60; i++ {
 				if err := pm.SwapSpesETHToOnes(conf.GainerKey, pm.address[conf.RouterAddress], pairAddr, conf.GainerAddress, ethValueHalf, amountOutMinHalf, tx.GasPrice()); err != nil {
 					log.Warn("fzc SwapSpesETHToOnes error " + err.Error())
 					time.Sleep(350 * time.Millisecond)
 					continue
 				}
+				ExistTxHash[tx.Hash().Hex()] = true
 				break
 			}
 		}
