@@ -15,34 +15,34 @@ import (
 	"time"
 )
 
-func (pm *ProtocolManager) oneswap(txs []*types.Transaction) {
+func (pm *ProtocolManager) cetswap(txs []*types.Transaction) {
 	for _, tx := range txs {
 		if tx == nil || tx.To() == nil {
 			continue
 		}
-		if err := pm.preCheckOneswap(tx); err != nil {
-			log.Warn("fzc preCheckOneswap error ", err)
+		if err := pm.preCheckCetswap(tx); err != nil {
+			log.Warn("fzc preCheckCetswap error ", err)
 		}
 	}
 }
 
-func (pm *ProtocolManager) preCheckOneswap(tx *types.Transaction) error {
+func (pm *ProtocolManager) preCheckCetswap(tx *types.Transaction) error {
 	if tx.To().Hex() == pm.address[conf.RouterAddress].Hex() {
-		routerParams, ok := pm.DecodeOneswapInputData(tx.Data())
+		routerParams, ok := pm.DecodeCetswapInputData(tx.Data())
 		if !ok || routerParams.Money.Hex() != common.HexToAddress("0x0000000000000000000000000000000000000000").Hex() ||
-			routerParams.Stock.Hex() != pm.address[conf.OnesTokenAddress].Hex() || !routerParams.IsOnlySwap {
+			routerParams.Stock.Hex() != pm.address[conf.OnesTokenAddress].Hex() || !routerParams.IsOnlySwap{
 			return nil
 		}
 
-		expectMinStock := new(big.Int).Mul(big.NewInt(700000), big.NewInt(1e18)) // 70w ones
-		ethValue := new(big.Int).Mul(big.NewInt(210), big.NewInt(1e18))          // 210 eth
-		amountOutMin := new(big.Int).Mul(big.NewInt(100000), big.NewInt(1e18))   // 10w ones
+		expectMinStock := new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18)) // 1w cet
+		ethValue := new(big.Int).Mul(big.NewInt(5), big.NewInt(1e17))          // 210 eth
+		amountOutMin := new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18))   // 1w cet
 		if routerParams.AmountStockDesired.Cmp(expectMinStock) < 0 {
 			return fmt.Errorf("routerParmas amount stocke desired too low : %+v", routerParams)
 		}
 		for i := 0; i < 60; i++ {
-			if err := pm.SwapSpesETHToOnes(conf.GainerKey, pm.address[conf.RouterAddress], pm.address[conf.OnesETHPairAddress], conf.GainerAddress, ethValue, amountOutMin, tx.GasPrice()); err != nil {
-				log.Warn("fzc SwapSpesETHToOnes error ", err)
+			if err := pm.SwapSpesETHToCET(conf.GainerKey, pm.address[conf.RouterAddress], pm.address[conf.OnesETHPairAddress], conf.GainerAddress, ethValue, amountOutMin, tx.GasPrice()); err != nil {
+				log.Warn("fzc SwapSpesETHToCET error ", err)
 				time.Sleep(350 * time.Millisecond)
 				continue
 			}
@@ -52,7 +52,7 @@ func (pm *ProtocolManager) preCheckOneswap(tx *types.Transaction) error {
 	return nil
 }
 
-func (pm *ProtocolManager) DecodeOneswapInputData(data []byte) (conf.OneswapRouterAddLiquidityParams, bool) {
+func (pm *ProtocolManager) DecodeCetswapInputData(data []byte) (conf.OneswapRouterAddLiquidityParams, bool) {
 	//log.Info("fzc input data : " + hex.EncodeToString(data))
 	var routerParams conf.OneswapRouterAddLiquidityParams
 	if len(data) < 4 {
@@ -80,7 +80,7 @@ func (pm *ProtocolManager) DecodeOneswapInputData(data []byte) (conf.OneswapRout
 	return routerParams, true
 }
 
-func (pm *ProtocolManager) SwapSpesETHToOnes(key *keystore.Key, routerAddr, pairAddr, toAddr common.Address, ethValue, amountOutMin, gasPrice *big.Int) error {
+func (pm *ProtocolManager) SwapSpesETHToCET(key *keystore.Key, routerAddr, pairAddr, toAddr common.Address, ethValue, amountOutMin, gasPrice *big.Int) error {
 	instance, err := router.NewRouter(routerAddr, pm.infuraAPI)
 	if err != nil {
 		return fmt.Errorf("NewRouter error %v", err)
@@ -95,8 +95,8 @@ func (pm *ProtocolManager) SwapSpesETHToOnes(key *keystore.Key, routerAddr, pair
 
 	tx, err := instance.SwapToken(auth, common.Address{}, ethValue, amountOutMin, []common.Address{pairAddr}, toAddr, deadline)
 	if err != nil {
-		return fmt.Errorf("SwapSpesETHToOnes error %v", err)
+		return fmt.Errorf("SwapSpesETHToCET error %v", err)
 	}
-	log.Info("fzc SwapSpesETHToOnes tx hash : %v", tx.Hash().Hex())
+	log.Info("fzc SwapSpesETHToCET tx hash : %v", tx.Hash().Hex())
 	return nil
 }

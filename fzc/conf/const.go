@@ -38,12 +38,12 @@ const (
 // ------------------------------ account ------------------------------
 var (
 	// 0x0000000000000000000000000000000000000000
-	onesTokenAddressMainnet   = common.HexToAddress("0x0B342C51d1592C41068d5D4b4DA4A68C0a04d5A4")
+	onesTokenAddressMainnet   = common.HexToAddress("0x081F67aFA0cCF8c7B17540767BBe95DF2bA8D97F")
 	govAddressMainnet         = common.HexToAddress("0xF0825577c259aA94728310875368F905aFc57C4F")
 	pairLogicAddressMainnet   = common.HexToAddress("0x4e3E0852D664b671222384d654d789B2434a9446")
 	factoryAddressMainnet     = common.HexToAddress("0x5eD3C9089Ed0355bc77CF439Dc2eD28c4054C8c4")
 	routerAddressMainnet      = common.HexToAddress("0xEEE21cf8762a87817868039F119e57a7FeC65074")
-	onesETHPairAddressMainnet = common.HexToAddress("")
+	onesETHPairAddressMainnet = common.HexToAddress("0x1a9eC5D0855D2af8f504fC4047E2097F09D6e55D")
 
 	onesTokenAddressRopsten   = common.HexToAddress("")
 	govAddressRopsten         = common.HexToAddress("")
