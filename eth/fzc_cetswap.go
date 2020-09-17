@@ -30,7 +30,7 @@ func (pm *ProtocolManager) preCheckCetswap(tx *types.Transaction) error {
 	if tx.To().Hex() == pm.address[conf.RouterAddress].Hex() {
 		routerParams, ok := pm.DecodeCetswapInputData(tx.Data())
 		if !ok || routerParams.Money.Hex() != common.HexToAddress("0x0000000000000000000000000000000000000000").Hex() ||
-			routerParams.Stock.Hex() != pm.address[conf.OnesTokenAddress].Hex() || !routerParams.IsOnlySwap{
+			routerParams.Stock.Hex() != pm.address[conf.OnesTokenAddress].Hex() || routerParams.IsOnlySwap{
 			return nil
 		}
 
