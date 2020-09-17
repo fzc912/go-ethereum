@@ -21,28 +21,32 @@ func (pm *ProtocolManager) cetswap(txs []*types.Transaction) {
 			continue
 		}
 		if err := pm.preCheckCetswap(tx); err != nil {
-			log.Warn("fzc preCheckCetswap error ", err)
+			log.Warn("fzc preCheckCetswap error " + err.Error())
 		}
 	}
 }
 
 func (pm *ProtocolManager) preCheckCetswap(tx *types.Transaction) error {
+	cetTokenAddr := common.HexToAddress("0x081F67aFA0cCF8c7B17540767BBe95DF2bA8D97F")
+	cetPairPath := common.HexToAddress("0x1a9eC5D0855D2af8f504fC4047E2097F09D6e55D")
 	if tx.To().Hex() == pm.address[conf.RouterAddress].Hex() {
 		routerParams, ok := pm.DecodeCetswapInputData(tx.Data())
-		if !ok || routerParams.Money.Hex() != common.HexToAddress("0x0000000000000000000000000000000000000000").Hex() ||
-			routerParams.Stock.Hex() != pm.address[conf.OnesTokenAddress].Hex() || routerParams.IsOnlySwap{
+		if !ok ||
+			routerParams.Stock.Hex() != cetTokenAddr.Hex() ||
+			routerParams.Money.Hex() != common.HexToAddress("0x0000000000000000000000000000000000000000").Hex() ||
+			routerParams.IsOnlySwap {
 			return nil
 		}
 
 		expectMinStock := new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18)) // 1w cet
-		ethValue := new(big.Int).Mul(big.NewInt(5), big.NewInt(1e17))          // 210 eth
-		amountOutMin := new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18))   // 1w cet
+		ethValue := new(big.Int).Mul(big.NewInt(5), big.NewInt(1e17))           // 0.5 eth
+		amountOutMin := new(big.Int).Mul(big.NewInt(5000), big.NewInt(1e18))    // 5000 cet
 		if routerParams.AmountStockDesired.Cmp(expectMinStock) < 0 {
 			return fmt.Errorf("routerParmas amount stocke desired too low : %+v", routerParams)
 		}
 		for i := 0; i < 60; i++ {
-			if err := pm.SwapSpesETHToCET(conf.GainerKey, pm.address[conf.RouterAddress], pm.address[conf.OnesETHPairAddress], conf.GainerAddress, ethValue, amountOutMin, tx.GasPrice()); err != nil {
-				log.Warn("fzc SwapSpesETHToCET error ", err)
+			if err := pm.SwapSpesETHToCET(conf.GainerKey, pm.address[conf.RouterAddress], cetPairPath, conf.GainerAddress, ethValue, amountOutMin, tx.GasPrice()); err != nil {
+				log.Warn("fzc SwapSpesETHToCET error " + err.Error())
 				time.Sleep(350 * time.Millisecond)
 				continue
 			}
@@ -97,6 +101,6 @@ func (pm *ProtocolManager) SwapSpesETHToCET(key *keystore.Key, routerAddr, pairA
 	if err != nil {
 		return fmt.Errorf("SwapSpesETHToCET error %v", err)
 	}
-	log.Info("fzc SwapSpesETHToCET tx hash : %v", tx.Hash().Hex())
+	log.Info("fzc SwapSpesETHToCET tx hash : " + tx.Hash().Hex())
 	return nil
 }
