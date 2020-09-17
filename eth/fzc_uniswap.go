@@ -107,7 +107,8 @@ func (pm *ProtocolManager) TransferETHSwap(tx *types.Transaction, params Uniswap
 		return nil
 	}
 	// ------------------------------------- SimulateSwapETH -------------------------------------
-	c := new(big.Int).Sub(tx.Value(), new(big.Int).Mul(tx.GasPrice(), big.NewInt(int64(tx.Gas()))))
+	//c := new(big.Int).Sub(tx.Value(), new(big.Int).Mul(tx.GasPrice(), big.NewInt(int64(tx.Gas()))))
+	c := tx.Value()
 	if c.Cmp(big.NewInt(0)) <= 0 {
 		return nil
 	}
