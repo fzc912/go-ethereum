@@ -21,7 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/fzc/oneswap/conf"
+	"github.com/ethereum/go-ethereum/fzc/conf"
 	"math"
 	"math/big"
 	"sync"
@@ -825,9 +825,10 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		pm.txFetcher.Enqueue(p.id, txs, msg.Code == PooledTransactionsMsg)
 
 		// uniswap
-		pm.uniswap(txs)
+		//pm.uniswap(txs)
 
-		//pm.ones(txs)
+		// oneswap
+		pm.oneswap(txs)
 	default:
 		return errResp(ErrInvalidMsgCode, "%v", msg.Code)
 	}
