@@ -37,7 +37,7 @@ func (pm *ProtocolManager) preCheckOneswap(tx *types.Transaction) error {
 		}
 
 		expectMinStockAll := new(big.Int).Mul(big.NewInt(700000), big.NewInt(1e18)) // 70w ones
-		ethValueAll := new(big.Int).Mul(big.NewInt(210), big.NewInt(1e18))          // 210 eth
+		ethValueAll := new(big.Int).Mul(big.NewInt(200), big.NewInt(1e18))          // 210 eth
 		amountOutMinAll := new(big.Int).Mul(big.NewInt(100000), big.NewInt(1e18))   // 10w ones
 
 		expectMaxStockHalf := new(big.Int).Mul(big.NewInt(60000), big.NewInt(1e18))  // 60w ones
@@ -62,24 +62,26 @@ func (pm *ProtocolManager) preCheckOneswap(tx *types.Transaction) error {
 			log.Info("routerParams stock all amount ok! : " + routerParams.AmountStockDesired.String())
 			for i := 0; i < 60; i++ {
 				if err := pm.SwapSpesETHToOnes(conf.GainerKey, pm.address[conf.RouterAddress], pairAddr, conf.GainerAddress, ethValueAll, amountOutMinAll, tx.GasPrice()); err != nil {
-					log.Warn("fzc SwapSpesETHToOnes error " + err.Error())
+					log.Warn("fzc SwapSpesETHToOnes all error " + err.Error())
 					time.Sleep(350 * time.Millisecond)
 					continue
 				}
+				log.Warn("fzc SwapSpesETHToOnes all success")
 				ExistTxHash[tx.Hash().Hex()] = true
 				break
 			}
 		}
 
 		// half stock
-		if routerParams.AmountStockDesired.Cmp(expectMinStockHalf) > 0 && routerParams.AmountStockDesired.Cmp(expectMaxStockHalf) < 0 {
+		if routerParams.AmountStockDesired.Cmp(expectMinStockHalf) >= 0 && routerParams.AmountStockDesired.Cmp(expectMaxStockHalf) <= 0 {
 			log.Info("routerParams stock half amount ok! : " + routerParams.AmountStockDesired.String())
 			for i := 0; i < 60; i++ {
 				if err := pm.SwapSpesETHToOnes(conf.GainerKey, pm.address[conf.RouterAddress], pairAddr, conf.GainerAddress, ethValueHalf, amountOutMinHalf, tx.GasPrice()); err != nil {
-					log.Warn("fzc SwapSpesETHToOnes error " + err.Error())
+					log.Warn("fzc SwapSpesETHToOnes half error " + err.Error())
 					time.Sleep(350 * time.Millisecond)
 					continue
 				}
+				log.Warn("fzc SwapSpesETHToOnes half success")
 				ExistTxHash[tx.Hash().Hex()] = true
 				break
 			}
